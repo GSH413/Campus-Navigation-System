@@ -1,0 +1,42 @@
+# Visual Studio
+.vs/
+Debug/
+Release/
+x64/
+x86/
+*.obj
+*.pdb
+*.ilk
+*.ipch
+*.exe
+*.log
+
+# Build folders
+bin/
+obj/
+build/
+out/
+
+# VS Code
+.vscode/
+
+# macOS
+.DS_Store
+
+# Windows
+Thumbs.db
+
+# Temporary files
+*.tmp
+*.bak
+
+# executable files
+campus
+
+# generated test files
+春华堂
+春草园
+食堂
+
+# object files
+*.o
