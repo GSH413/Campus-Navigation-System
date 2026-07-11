@@ -27,5 +27,11 @@ void addRoad(int a,int b,int distance);
 // 查询道路
 void queryRoad(int a,int b,const vector<Spot>& spots);
 
+// 管理员道路维护功能
 
+void updateRoad(int a, int b, int distance);
+
+void closeRoad(int a, int b);
+
+void restoreRoad(int a, int b, int distance);
 #endif
