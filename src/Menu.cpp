@@ -136,11 +136,11 @@ void userMenu(const vector<Spot>& spots)
 
 
 // 管理员菜单
-void adminMenu(const vector<Spot>& spots)
+void adminMenu(vector<Spot>& spots)
 {
     int choice = 0;
 
-    while (choice != 4)
+    while (choice != 6)
     {
         cout << endl;
         cout << "========================" << endl;
@@ -149,7 +149,9 @@ void adminMenu(const vector<Spot>& spots)
         cout << "1. 修改道路距离" << endl;
         cout << "2. 关闭某条道路" << endl;
         cout << "3. 恢复某条道路" << endl;
-        cout << "4. 返回主菜单" << endl;
+        cout << "4. 修改地点信息" << endl;
+        cout << "5. 增加道路" << endl;
+        cout << "6. 返回主菜单" << endl;
         cout << "请输入你的选择: ";
 
         cin >> choice;
@@ -180,7 +182,7 @@ void adminMenu(const vector<Spot>& spots)
             else
             {
                 updateRoad(a, b, distance);
-                saveRoads(); // 保存修改后的道路信息
+                saveRoads();
             }
 
             break;
@@ -203,7 +205,7 @@ void adminMenu(const vector<Spot>& spots)
             else
             {
                 closeRoad(a, b);
-                saveRoads(); // 保存修改后的道路信息
+                saveRoads();
             }
 
             break;
@@ -233,13 +235,98 @@ void adminMenu(const vector<Spot>& spots)
             else
             {
                 restoreRoad(a, b, distance);
-                saveRoads(); // 保存修改后的道路信息
+                saveRoads();
             }
 
             break;
         }
 
         case 4:
+        {
+            int id;
+            string name;
+            string description;
+            int x;
+            int y;
+
+            cout << "请输入要修改的地点ID: ";
+            cin >> id;
+
+            if (id < 0 || id >= spots.size())
+            {
+                cout << "地点ID输入错误。" << endl;
+                break;
+            }
+
+            cout << "当前地点信息：" << endl;
+            cout << "名称: " << spots[id].name << endl;
+            cout << "介绍: " << spots[id].description << endl;
+            cout << "坐标: (" << spots[id].x << ", " << spots[id].y << ")" << endl;
+
+            cout << "请输入新的地点名称: ";
+            cin >> name;
+
+            // 清理上一句 cin >> name 留下的换行符
+            cin.ignore(numeric_limits<streamsize>::max(), '\n');
+
+            cout << "请输入新的地点介绍: ";
+            getline(cin, description);
+
+            cout << "请输入新的x坐标: ";
+            cin >> x;
+
+            cout << "请输入新的y坐标: ";
+            cin >> y;
+
+            spots[id].name = name;
+            spots[id].description = description;
+            spots[id].x = x;
+            spots[id].y = y;
+
+            saveSpots(spots);
+
+            cout << "地点信息修改成功。" << endl;
+
+            break;
+        }
+
+        case 5:
+        {
+            int a, b, distance;
+
+            cout << "请输入道路起点ID: ";
+            cin >> a;
+
+            cout << "请输入道路终点ID: ";
+            cin >> b;
+
+            cout << "请输入道路距离: ";
+            cin >> distance;
+
+            if (a < 0 || a >= spots.size() || b < 0 || b >= spots.size())
+            {
+                cout << "地点ID输入错误。" << endl;
+            }
+            else if (a == b)
+            {
+                cout << "起点和终点不能相同。" << endl;
+            }
+            else if (distance <= 0)
+            {
+                cout << "道路距离必须大于0。" << endl;
+            }
+            else
+            {
+                addRoad(a, b, distance);
+                saveRoads();
+
+                cout << "道路增加成功。" << endl;
+            }
+
+            break;
+        }
+
+        case 6:
             cout << "正在返回主菜单..." << endl;
             break;
 
@@ -252,7 +339,7 @@ void adminMenu(const vector<Spot>& spots)
 
 
 // 主菜单
-void menu(const vector<Spot>& spots)
+void menu(vector<Spot>& spots)
 {
     int choice = 0;
 

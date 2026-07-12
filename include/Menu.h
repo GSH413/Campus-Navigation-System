@@ -8,7 +8,7 @@ using namespace std;
 
 
 // 主菜单
-void menu(const vector<Spot>& spots);
+void menu( vector<Spot>& spots);
 
 
 // 普通用户菜单
@@ -16,7 +16,7 @@ void userMenu(const vector<Spot>& spots);
 
 
 // 管理员菜单
-void adminMenu(const vector<Spot>& spots);
+void adminMenu(vector<Spot>& spots);
 
 
 // 管理员登录
@@ -25,6 +25,5 @@ bool adminLogin();
 
 // 查询地点信息
 void querySpot(const vector<Spot>& spots);
-
 
 #endif
