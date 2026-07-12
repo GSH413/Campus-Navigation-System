@@ -5,7 +5,7 @@
 
 using namespace std;
 
-void printPath(int end,const vector<int>& pre,const vector<Spot>& spots){
+void printPath(int end,const vector<int>& pre,const vector<Spot>& spots){// 打印最短路径
     stack<int> path;
     bool first = true;
     int current = end;

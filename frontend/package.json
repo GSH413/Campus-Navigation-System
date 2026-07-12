@@ -1,0 +1,30 @@
+﻿{
+  "name": "campus-navigation-frontend",
+  "version": "1.0.0",
+  "description": "Electron frontend for the Campus Navigation System course project.",
+  "main": "main.js",
+  "scripts": {
+    "dev": "electron .",
+    "start": "electron .",
+    "test:data": "node test-data.js",
+    "build:win": "electron-builder --win"
+  },
+  "devDependencies": {
+    "electron": "^31.7.7",
+    "electron-builder": "^24.13.3"
+  },
+  "build": {
+    "appId": "edu.course.campus-navigation",
+    "productName": "Campus Navigation System",
+    "directories": {
+      "output": "dist"
+    },
+    "files": [
+      "**/*",
+      "../assets/**/*"
+    ],
+    "win": {
+      "target": "nsis"
+    }
+  }
+}

@@ -1,0 +1,1761 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
+    <title>校园道路几何坐标采集工具</title>
+
+    <style>
+        :root {
+            --bg: #eef2f5;
+            --panel: rgba(255, 255, 255, 0.96);
+            --text: #1d2935;
+            --muted: #667786;
+            --border: #d8e0e7;
+            --primary: #1677ff;
+            --primary-hover: #095ec9;
+            --success: #22a06b;
+            --danger: #df3f40;
+            --warning: #d97706;
+            --route: #1677ff;
+            --route-outline: rgba(255, 255, 255, 0.95);
+            --point: #ff4d4f;
+            --shadow: 0 12px 34px rgba(42, 55, 67, 0.12);
+            --radius: 14px;
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        html,
+        body {
+            width: 100%;
+            height: 100%;
+            margin: 0;
+            overflow: hidden;
+        }
+
+        body {
+            display: grid;
+            grid-template-columns: 360px minmax(0, 1fr);
+            color: var(--text);
+            background: var(--bg);
+            font-family:
+                "Microsoft YaHei",
+                "PingFang SC",
+                "Segoe UI",
+                Arial,
+                sans-serif;
+        }
+
+        button,
+        input,
+        select,
+        textarea {
+            font: inherit;
+        }
+
+        button {
+            cursor: pointer;
+        }
+
+        .sidebar {
+            height: 100vh;
+            padding: 18px;
+            overflow-y: auto;
+            background: var(--panel);
+            border-right: 1px solid var(--border);
+            box-shadow: 6px 0 25px rgba(42, 55, 67, 0.06);
+            z-index: 10;
+        }
+
+        .title {
+            margin: 0;
+            font-size: 21px;
+            font-weight: 700;
+            letter-spacing: 0.2px;
+        }
+
+        .subtitle {
+            margin: 8px 0 18px;
+            color: var(--muted);
+            font-size: 13px;
+            line-height: 1.7;
+        }
+
+        .section {
+            margin-bottom: 14px;
+            padding: 14px;
+            background: #fff;
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+        }
+
+        .section-title {
+            margin: 0 0 12px;
+            font-size: 14px;
+            font-weight: 700;
+        }
+
+        .field {
+            margin-bottom: 11px;
+        }
+
+        .field:last-child {
+            margin-bottom: 0;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 6px;
+            color: var(--muted);
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        input[type="number"],
+        input[type="text"],
+        select,
+        textarea {
+            width: 100%;
+            min-height: 40px;
+            padding: 9px 11px;
+            color: var(--text);
+            background: #fff;
+            border: 1px solid var(--border);
+            border-radius: 9px;
+            outline: none;
+            transition:
+                border-color 160ms ease,
+                box-shadow 160ms ease;
+        }
+
+        input:focus,
+        select:focus,
+        textarea:focus {
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(22, 119, 255, 0.12);
+        }
+
+        textarea {
+            min-height: 154px;
+            resize: vertical;
+            font-family: Consolas, "Courier New", monospace;
+            font-size: 12px;
+            line-height: 1.55;
+        }
+
+        .row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 9px;
+        }
+
+        .button-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px;
+        }
+
+        .button-grid.three {
+            grid-template-columns: 1fr 1fr 1fr;
+        }
+
+        .btn {
+            min-height: 39px;
+            padding: 8px 10px;
+            color: var(--text);
+            background: #fff;
+            border: 1px solid var(--border);
+            border-radius: 9px;
+            transition:
+                transform 120ms ease,
+                border-color 160ms ease,
+                background 160ms ease;
+        }
+
+        .btn:hover {
+            border-color: #aebbc6;
+            background: #f7f9fb;
+        }
+
+        .btn:active {
+            transform: translateY(1px);
+        }
+
+        .btn.primary {
+            color: #fff;
+            background: var(--primary);
+            border-color: var(--primary);
+        }
+
+        .btn.primary:hover {
+            background: var(--primary-hover);
+        }
+
+        .btn.success {
+            color: #fff;
+            background: var(--success);
+            border-color: var(--success);
+        }
+
+        .btn.danger {
+            color: var(--danger);
+            border-color: rgba(223, 63, 64, 0.4);
+        }
+
+        .btn.warning {
+            color: var(--warning);
+            border-color: rgba(217, 119, 6, 0.4);
+        }
+
+        .btn:disabled {
+            cursor: not-allowed;
+            opacity: 0.45;
+        }
+
+        .status {
+            padding: 10px 11px;
+            color: var(--muted);
+            background: #f7f9fb;
+            border-radius: 9px;
+            font-size: 12px;
+            line-height: 1.65;
+        }
+
+        .status strong {
+            color: var(--text);
+        }
+
+        .road-list {
+            display: flex;
+            flex-direction: column;
+            max-height: 210px;
+            gap: 7px;
+            overflow-y: auto;
+        }
+
+        .road-item {
+            display: grid;
+            grid-template-columns: minmax(0, 1fr) auto auto;
+            align-items: center;
+            gap: 6px;
+            padding: 8px 9px;
+            background: #f7f9fb;
+            border: 1px solid transparent;
+            border-radius: 9px;
+        }
+
+        .road-item.active {
+            background: rgba(22, 119, 255, 0.08);
+            border-color: rgba(22, 119, 255, 0.3);
+        }
+
+        .road-info {
+            min-width: 0;
+        }
+
+        .road-key {
+            font-size: 13px;
+            font-weight: 700;
+        }
+
+        .road-meta {
+            margin-top: 2px;
+            color: var(--muted);
+            font-size: 11px;
+        }
+
+        .icon-btn {
+            width: 31px;
+            height: 31px;
+            padding: 0;
+            color: var(--muted);
+            background: #fff;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+        }
+
+        .icon-btn:hover {
+            color: var(--primary);
+            border-color: var(--primary);
+        }
+
+        .icon-btn.delete:hover {
+            color: var(--danger);
+            border-color: var(--danger);
+        }
+
+        .workspace {
+            position: relative;
+            min-width: 0;
+            height: 100vh;
+            overflow: hidden;
+            background:
+                linear-gradient(45deg, #e8edf1 25%, transparent 25%),
+                linear-gradient(-45deg, #e8edf1 25%, transparent 25%),
+                linear-gradient(45deg, transparent 75%, #e8edf1 75%),
+                linear-gradient(-45deg, transparent 75%, #e8edf1 75%);
+            background-position:
+                0 0,
+                0 8px,
+                8px -8px,
+                -8px 0;
+            background-size: 16px 16px;
+        }
+
+        .viewport {
+            position: absolute;
+            inset: 0;
+            overflow: hidden;
+            cursor: crosshair;
+            user-select: none;
+        }
+
+        .viewport.panning {
+            cursor: grabbing;
+        }
+
+        .map-stage {
+            position: absolute;
+            top: 0;
+            left: 0;
+            transform-origin: 0 0;
+            will-change: transform;
+        }
+
+        #mapImage {
+            display: block;
+            pointer-events: none;
+            -webkit-user-drag: none;
+        }
+
+        #svgOverlay {
+            position: absolute;
+            inset: 0;
+            overflow: visible;
+            pointer-events: none;
+        }
+
+        .route-outline {
+            fill: none;
+            stroke: var(--route-outline);
+            stroke-width: 10;
+            stroke-linecap: round;
+            stroke-linejoin: round;
+            vector-effect: non-scaling-stroke;
+        }
+
+        .route-line {
+            fill: none;
+            stroke: var(--route);
+            stroke-width: 5;
+            stroke-linecap: round;
+            stroke-linejoin: round;
+            vector-effect: non-scaling-stroke;
+        }
+
+        .saved-route {
+            fill: none;
+            stroke: rgba(65, 84, 99, 0.42);
+            stroke-width: 3;
+            stroke-linecap: round;
+            stroke-linejoin: round;
+            vector-effect: non-scaling-stroke;
+        }
+
+        .current-point {
+            fill: var(--point);
+            stroke: #fff;
+            stroke-width: 3;
+            vector-effect: non-scaling-stroke;
+        }
+
+        .point-label {
+            fill: #fff;
+            stroke: rgba(29, 41, 53, 0.9);
+            stroke-width: 4;
+            paint-order: stroke;
+            font-size: 13px;
+            font-weight: 700;
+            text-anchor: middle;
+            dominant-baseline: middle;
+            pointer-events: none;
+        }
+
+        .toolbar {
+            position: absolute;
+            top: 16px;
+            right: 16px;
+            display: flex;
+            gap: 7px;
+            padding: 7px;
+            background: rgba(255, 255, 255, 0.94);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            box-shadow: var(--shadow);
+            z-index: 6;
+        }
+
+        .toolbar button {
+            min-width: 38px;
+            height: 38px;
+            padding: 0 10px;
+            color: var(--text);
+            background: transparent;
+            border: 0;
+            border-radius: 8px;
+        }
+
+        .toolbar button:hover {
+            background: #edf2f6;
+        }
+
+        .coordinate-badge {
+            position: absolute;
+            right: 16px;
+            bottom: 16px;
+            padding: 9px 12px;
+            color: #fff;
+            background: rgba(29, 41, 53, 0.82);
+            border-radius: 9px;
+            font-family: Consolas, monospace;
+            font-size: 12px;
+            pointer-events: none;
+            z-index: 6;
+        }
+
+        .empty-state {
+            position: absolute;
+            inset: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 30px;
+            color: var(--muted);
+            text-align: center;
+            pointer-events: none;
+        }
+
+        .empty-state strong {
+            margin-bottom: 8px;
+            color: var(--text);
+            font-size: 18px;
+        }
+
+        .hidden {
+            display: none !important;
+        }
+
+        .toast {
+            position: fixed;
+            left: 50%;
+            bottom: 28px;
+            z-index: 100;
+            max-width: 460px;
+            padding: 11px 16px;
+            color: #fff;
+            background: rgba(29, 41, 53, 0.92);
+            border-radius: 9px;
+            box-shadow: var(--shadow);
+            opacity: 0;
+            transform: translate(-50%, 15px);
+            pointer-events: none;
+            transition:
+                opacity 180ms ease,
+                transform 180ms ease;
+        }
+
+        .toast.show {
+            opacity: 1;
+            transform: translate(-50%, 0);
+        }
+
+        input[type="file"] {
+            width: 100%;
+            color: var(--muted);
+            font-size: 12px;
+        }
+
+        input[type="file"]::file-selector-button {
+            margin-right: 8px;
+            padding: 7px 10px;
+            color: var(--text);
+            background: #fff;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            cursor: pointer;
+        }
+
+        @media (max-width: 900px) {
+            body {
+                grid-template-columns: 310px minmax(0, 1fr);
+            }
+
+            .sidebar {
+                padding: 12px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <aside class="sidebar">
+        <h1 class="title">道路几何采集工具</h1>
+
+        <p class="subtitle">
+            点击地图沿实际道路依次添加折点。系统保存的是原始地图像素坐标，
+            不受页面缩放影响。
+        </p>
+
+        <section class="section">
+            <h2 class="section-title">1. 加载地图</h2>
+
+            <input
+                id="imageInput"
+                type="file"
+                accept=".png,.jpg,.jpeg,.webp,image/*"
+            >
+
+            <div
+                id="imageStatus"
+                class="status"
+                style="margin-top: 10px;"
+            >
+                尚未加载地图。
+            </div>
+        </section>
+
+        <section class="section">
+            <h2 class="section-title">2. 当前道路</h2>
+
+            <div class="row">
+                <div class="field">
+                    <label for="fromId">起点 ID</label>
+                    <input
+                        id="fromId"
+                        type="number"
+                        min="0"
+                        step="1"
+                        placeholder="例如 0"
+                    >
+                </div>
+
+                <div class="field">
+                    <label for="toId">终点 ID</label>
+                    <input
+                        id="toId"
+                        type="number"
+                        min="0"
+                        step="1"
+                        placeholder="例如 5"
+                    >
+                </div>
+            </div>
+
+            <div
+                id="currentStatus"
+                class="status"
+            >
+                当前未开始采集。
+            </div>
+
+            <div
+                class="button-grid"
+                style="margin-top: 10px;"
+            >
+                <button
+                    id="startRoadButton"
+                    class="btn primary"
+                >
+                    开始新道路
+                </button>
+
+                <button
+                    id="finishRoadButton"
+                    class="btn success"
+                    disabled
+                >
+                    完成并保存
+                </button>
+
+                <button
+                    id="undoButton"
+                    class="btn warning"
+                    disabled
+                >
+                    撤销一点
+                </button>
+
+                <button
+                    id="clearCurrentButton"
+                    class="btn danger"
+                    disabled
+                >
+                    清空当前
+                </button>
+            </div>
+        </section>
+
+        <section class="section">
+            <h2 class="section-title">3. 已保存道路</h2>
+
+            <div
+                id="roadList"
+                class="road-list"
+            >
+                <div class="status">暂时没有道路数据。</div>
+            </div>
+        </section>
+
+        <section class="section">
+            <h2 class="section-title">4. 导入与导出</h2>
+
+            <div class="field">
+                <label for="jsonInput">导入已有 JSON</label>
+                <input
+                    id="jsonInput"
+                    type="file"
+                    accept=".json,application/json"
+                >
+            </div>
+
+            <div class="button-grid">
+                <button
+                    id="copyButton"
+                    class="btn"
+                >
+                    复制 JSON
+                </button>
+
+                <button
+                    id="downloadButton"
+                    class="btn primary"
+                >
+                    下载 JSON
+                </button>
+
+                <button
+                    id="exportTextareaButton"
+                    class="btn"
+                >
+                    刷新预览
+                </button>
+
+                <button
+                    id="clearAllButton"
+                    class="btn danger"
+                >
+                    清空全部
+                </button>
+            </div>
+
+            <div
+                class="field"
+                style="margin-top: 11px;"
+            >
+                <label for="jsonPreview">JSON 预览</label>
+                <textarea
+                    id="jsonPreview"
+                    readonly
+                    spellcheck="false"
+                ></textarea>
+            </div>
+        </section>
+    </aside>
+
+    <main class="workspace">
+        <div
+            id="viewport"
+            class="viewport"
+        >
+            <div
+                id="mapStage"
+                class="map-stage"
+            >
+                <img
+                    id="mapImage"
+                    alt="校园地图"
+                >
+
+                <svg
+                    id="svgOverlay"
+                    xmlns="http://www.w3.org/2000/svg"
+                ></svg>
+            </div>
+        </div>
+
+        <div class="toolbar">
+            <button
+                id="zoomOutButton"
+                title="缩小"
+            >
+                −
+            </button>
+
+            <button
+                id="zoomResetButton"
+                title="适应窗口"
+            >
+                复位
+            </button>
+
+            <button
+                id="zoomInButton"
+                title="放大"
+            >
+                ＋
+            </button>
+
+            <button
+                id="toggleSavedRoadsButton"
+                title="显示或隐藏已保存道路"
+            >
+                隐藏旧路
+            </button>
+        </div>
+
+        <div
+            id="coordinateBadge"
+            class="coordinate-badge"
+        >
+            x: -, y: -, 缩放: 100%
+        </div>
+
+        <div
+            id="emptyState"
+            class="empty-state"
+        >
+            <strong>请先加载校园地图</strong>
+            <span>加载后，输入道路起点和终点 ID，然后开始采集。</span>
+        </div>
+    </main>
+
+    <div
+        id="toast"
+        class="toast"
+    ></div>
+
+    <script>
+        "use strict";
+
+        const STORAGE_KEY = "campus-road-geometry-v1";
+
+        const imageInput = document.getElementById("imageInput");
+        const jsonInput = document.getElementById("jsonInput");
+
+        const mapImage = document.getElementById("mapImage");
+        const mapStage = document.getElementById("mapStage");
+        const viewport = document.getElementById("viewport");
+        const svgOverlay = document.getElementById("svgOverlay");
+
+        const emptyState = document.getElementById("emptyState");
+        const imageStatus = document.getElementById("imageStatus");
+        const currentStatus = document.getElementById("currentStatus");
+        const coordinateBadge = document.getElementById("coordinateBadge");
+
+        const fromIdInput = document.getElementById("fromId");
+        const toIdInput = document.getElementById("toId");
+
+        const startRoadButton = document.getElementById("startRoadButton");
+        const finishRoadButton = document.getElementById("finishRoadButton");
+        const undoButton = document.getElementById("undoButton");
+        const clearCurrentButton = document.getElementById("clearCurrentButton");
+
+        const roadList = document.getElementById("roadList");
+        const jsonPreview = document.getElementById("jsonPreview");
+
+        const copyButton = document.getElementById("copyButton");
+        const downloadButton = document.getElementById("downloadButton");
+        const exportTextareaButton =
+            document.getElementById("exportTextareaButton");
+        const clearAllButton = document.getElementById("clearAllButton");
+
+        const zoomInButton = document.getElementById("zoomInButton");
+        const zoomOutButton = document.getElementById("zoomOutButton");
+        const zoomResetButton = document.getElementById("zoomResetButton");
+        const toggleSavedRoadsButton =
+            document.getElementById("toggleSavedRoadsButton");
+
+        const toast = document.getElementById("toast");
+
+        let roadGeometry = {};
+        let currentRoad = null;
+        let currentPoints = [];
+
+        let imageLoaded = false;
+        let showSavedRoads = true;
+
+        let scale = 1;
+        let translateX = 0;
+        let translateY = 0;
+
+        let isPanning = false;
+        let panStartX = 0;
+        let panStartY = 0;
+        let panOriginX = 0;
+        let panOriginY = 0;
+
+        let spacePressed = false;
+        let toastTimer = null;
+
+        function showToast(message) {
+            toast.textContent = message;
+            toast.classList.add("show");
+
+            clearTimeout(toastTimer);
+
+            toastTimer = setTimeout(() => {
+                toast.classList.remove("show");
+            }, 2200);
+        }
+
+        function normalizeId(value) {
+            const text = String(value).trim();
+
+            if (text === "") {
+                return null;
+            }
+
+            const number = Number(text);
+
+            if (!Number.isInteger(number) || number < 0) {
+                return null;
+            }
+
+            return number;
+        }
+
+        function getRoadKey(fromId, toId) {
+            const minId = Math.min(fromId, toId);
+            const maxId = Math.max(fromId, toId);
+
+            return `${minId}-${maxId}`;
+        }
+
+        function clonePoints(points) {
+            return points.map(([x, y]) => [x, y]);
+        }
+
+        /*
+         * JSON 中的坐标始终按照道路 key 的顺序保存：
+         * 较小 ID -> 较大 ID。
+         *
+         * 用户可以从任意方向采集。
+         * 如果输入方向相反，保存前自动反转。
+         */
+        function normalizePointsForStorage(fromId, toId, points) {
+            if (fromId <= toId) {
+                return clonePoints(points);
+            }
+
+            return clonePoints(points).reverse();
+        }
+
+        function persistData() {
+            localStorage.setItem(
+                STORAGE_KEY,
+                JSON.stringify(roadGeometry)
+            );
+        }
+
+        function loadLocalData() {
+            const saved = localStorage.getItem(STORAGE_KEY);
+
+            if (!saved) {
+                return;
+            }
+
+            try {
+                const parsed = JSON.parse(saved);
+
+                if (
+                    parsed &&
+                    typeof parsed === "object" &&
+                    !Array.isArray(parsed)
+                ) {
+                    roadGeometry = sanitizeGeometry(parsed);
+                }
+            } catch (error) {
+                console.warn("本地道路数据读取失败：", error);
+            }
+        }
+
+        function sanitizeGeometry(input) {
+            const output = {};
+
+            for (const [key, points] of Object.entries(input)) {
+                if (!/^\d+-\d+$/.test(key)) {
+                    continue;
+                }
+
+                if (!Array.isArray(points)) {
+                    continue;
+                }
+
+                const validPoints = points
+                    .filter(point => (
+                        Array.isArray(point) &&
+                        point.length >= 2 &&
+                        Number.isFinite(Number(point[0])) &&
+                        Number.isFinite(Number(point[1]))
+                    ))
+                    .map(point => [
+                        Math.round(Number(point[0])),
+                        Math.round(Number(point[1]))
+                    ]);
+
+                if (validPoints.length >= 2) {
+                    output[key] = validPoints;
+                }
+            }
+
+            return output;
+        }
+
+        function getSortedGeometry() {
+            const sorted = {};
+
+            const entries = Object.entries(roadGeometry).sort(
+                ([keyA], [keyB]) => {
+                    const [a1, a2] = keyA.split("-").map(Number);
+                    const [b1, b2] = keyB.split("-").map(Number);
+
+                    return a1 - b1 || a2 - b2;
+                }
+            );
+
+            for (const [key, points] of entries) {
+                sorted[key] = points;
+            }
+
+            return sorted;
+        }
+
+        function getJsonText() {
+            return JSON.stringify(getSortedGeometry(), null, 2);
+        }
+
+        function updateJsonPreview() {
+            jsonPreview.value = getJsonText();
+        }
+
+        function applyTransform() {
+            mapStage.style.transform =
+                `translate(${translateX}px, ${translateY}px) scale(${scale})`;
+
+            coordinateBadge.textContent =
+                `x: -, y: -, 缩放: ${Math.round(scale * 100)}%`;
+        }
+
+        function fitImageToViewport() {
+            if (!imageLoaded) {
+                return;
+            }
+
+            const viewportWidth = viewport.clientWidth;
+            const viewportHeight = viewport.clientHeight;
+
+            const naturalWidth = mapImage.naturalWidth;
+            const naturalHeight = mapImage.naturalHeight;
+
+            const padding = 36;
+
+            scale = Math.min(
+                (viewportWidth - padding * 2) / naturalWidth,
+                (viewportHeight - padding * 2) / naturalHeight
+            );
+
+            scale = Math.max(0.05, Math.min(scale, 4));
+
+            translateX =
+                (viewportWidth - naturalWidth * scale) / 2;
+
+            translateY =
+                (viewportHeight - naturalHeight * scale) / 2;
+
+            applyTransform();
+        }
+
+        function setScaleAtPoint(nextScale, screenX, screenY) {
+            if (!imageLoaded) {
+                return;
+            }
+
+            nextScale = Math.max(0.08, Math.min(nextScale, 8));
+
+            const viewportRect = viewport.getBoundingClientRect();
+
+            const localScreenX = screenX - viewportRect.left;
+            const localScreenY = screenY - viewportRect.top;
+
+            const imageX = (localScreenX - translateX) / scale;
+            const imageY = (localScreenY - translateY) / scale;
+
+            translateX = localScreenX - imageX * nextScale;
+            translateY = localScreenY - imageY * nextScale;
+            scale = nextScale;
+
+            applyTransform();
+        }
+
+        function screenToImage(clientX, clientY) {
+            const viewportRect = viewport.getBoundingClientRect();
+
+            const localX = clientX - viewportRect.left;
+            const localY = clientY - viewportRect.top;
+
+            return {
+                x: Math.round((localX - translateX) / scale),
+                y: Math.round((localY - translateY) / scale)
+            };
+        }
+
+        function isPointInsideImage(point) {
+            return (
+                point.x >= 0 &&
+                point.y >= 0 &&
+                point.x <= mapImage.naturalWidth &&
+                point.y <= mapImage.naturalHeight
+            );
+        }
+
+        function createSvgElement(tagName, attributes = {}) {
+            const element = document.createElementNS(
+                "http://www.w3.org/2000/svg",
+                tagName
+            );
+
+            for (const [key, value] of Object.entries(attributes)) {
+                element.setAttribute(key, String(value));
+            }
+
+            return element;
+        }
+
+        function renderOverlay() {
+            svgOverlay.innerHTML = "";
+
+            if (!imageLoaded) {
+                return;
+            }
+
+            svgOverlay.setAttribute(
+                "viewBox",
+                `0 0 ${mapImage.naturalWidth} ${mapImage.naturalHeight}`
+            );
+
+            svgOverlay.setAttribute(
+                "width",
+                mapImage.naturalWidth
+            );
+
+            svgOverlay.setAttribute(
+                "height",
+                mapImage.naturalHeight
+            );
+
+            if (showSavedRoads) {
+                for (const points of Object.values(roadGeometry)) {
+                    if (points.length < 2) {
+                        continue;
+                    }
+
+                    const polyline = createSvgElement("polyline", {
+                        class: "saved-route",
+                        points: points
+                            .map(([x, y]) => `${x},${y}`)
+                            .join(" ")
+                    });
+
+                    svgOverlay.appendChild(polyline);
+                }
+            }
+
+            if (currentPoints.length >= 2) {
+                const pointsText = currentPoints
+                    .map(([x, y]) => `${x},${y}`)
+                    .join(" ");
+
+                svgOverlay.appendChild(
+                    createSvgElement("polyline", {
+                        class: "route-outline",
+                        points: pointsText
+                    })
+                );
+
+                svgOverlay.appendChild(
+                    createSvgElement("polyline", {
+                        class: "route-line",
+                        points: pointsText
+                    })
+                );
+            }
+
+            currentPoints.forEach(([x, y], index) => {
+                svgOverlay.appendChild(
+                    createSvgElement("circle", {
+                        class: "current-point",
+                        cx: x,
+                        cy: y,
+                        r: 7
+                    })
+                );
+
+                const label = createSvgElement("text", {
+                    class: "point-label",
+                    x,
+                    y
+                });
+
+                label.textContent = String(index + 1);
+                svgOverlay.appendChild(label);
+            });
+        }
+
+        function updateCurrentStatus() {
+            const collecting = Boolean(currentRoad);
+
+            finishRoadButton.disabled =
+                !collecting || currentPoints.length < 2;
+
+            undoButton.disabled =
+                !collecting || currentPoints.length === 0;
+
+            clearCurrentButton.disabled =
+                !collecting || currentPoints.length === 0;
+
+            if (!collecting) {
+                currentStatus.innerHTML =
+                    "当前未开始采集。";
+                return;
+            }
+
+            currentStatus.innerHTML = `
+                道路：<strong>${currentRoad.fromId} → ${currentRoad.toId}</strong><br>
+                存储键：<strong>${currentRoad.key}</strong><br>
+                已采集：<strong>${currentPoints.length}</strong> 个坐标点
+            `;
+        }
+
+        function renderRoadList() {
+            roadList.innerHTML = "";
+
+            const entries = Object.entries(getSortedGeometry());
+
+            if (entries.length === 0) {
+                roadList.innerHTML =
+                    '<div class="status">暂时没有道路数据。</div>';
+                return;
+            }
+
+            for (const [key, points] of entries) {
+                const item = document.createElement("div");
+                item.className = "road-item";
+
+                if (currentRoad?.key === key) {
+                    item.classList.add("active");
+                }
+
+                const info = document.createElement("div");
+                info.className = "road-info";
+                info.innerHTML = `
+                    <div class="road-key">${key}</div>
+                    <div class="road-meta">${points.length} 个坐标点</div>
+                `;
+
+                const editButton = document.createElement("button");
+                editButton.className = "icon-btn";
+                editButton.title = "编辑";
+                editButton.textContent = "改";
+                editButton.addEventListener("click", () => {
+                    editRoad(key);
+                });
+
+                const deleteButton = document.createElement("button");
+                deleteButton.className = "icon-btn delete";
+                deleteButton.title = "删除";
+                deleteButton.textContent = "删";
+                deleteButton.addEventListener("click", () => {
+                    deleteRoad(key);
+                });
+
+                item.append(info, editButton, deleteButton);
+                roadList.appendChild(item);
+            }
+        }
+
+        function refreshAll() {
+            renderOverlay();
+            renderRoadList();
+            updateCurrentStatus();
+            updateJsonPreview();
+        }
+
+        function startRoad() {
+            if (!imageLoaded) {
+                showToast("请先加载校园地图。");
+                return;
+            }
+
+            const fromId = normalizeId(fromIdInput.value);
+            const toId = normalizeId(toIdInput.value);
+
+            if (fromId === null || toId === null) {
+                showToast("请输入合法的起点和终点 ID。");
+                return;
+            }
+
+            if (fromId === toId) {
+                showToast("道路起点和终点不能相同。");
+                return;
+            }
+
+            const key = getRoadKey(fromId, toId);
+
+            if (
+                roadGeometry[key] &&
+                !confirm(`道路 ${key} 已存在，是否重新采集并覆盖？`)
+            ) {
+                return;
+            }
+
+            currentRoad = {
+                fromId,
+                toId,
+                key
+            };
+
+            currentPoints = [];
+
+            refreshAll();
+
+            showToast(
+                `已开始采集道路 ${fromId} → ${toId}，请沿道路依次点击。`
+            );
+        }
+
+        function finishRoad() {
+            if (!currentRoad) {
+                showToast("当前没有正在采集的道路。");
+                return;
+            }
+
+            if (currentPoints.length < 2) {
+                showToast("每条道路至少需要两个坐标点。");
+                return;
+            }
+
+            roadGeometry[currentRoad.key] =
+                normalizePointsForStorage(
+                    currentRoad.fromId,
+                    currentRoad.toId,
+                    currentPoints
+                );
+
+            persistData();
+
+            const savedKey = currentRoad.key;
+
+            currentRoad = null;
+            currentPoints = [];
+
+            refreshAll();
+
+            showToast(`道路 ${savedKey} 已保存。`);
+        }
+
+        function editRoad(key) {
+            const points = roadGeometry[key];
+
+            if (!points) {
+                return;
+            }
+
+            const [fromId, toId] = key.split("-").map(Number);
+
+            fromIdInput.value = fromId;
+            toIdInput.value = toId;
+
+            currentRoad = {
+                fromId,
+                toId,
+                key
+            };
+
+            currentPoints = clonePoints(points);
+
+            refreshAll();
+
+            showToast(`正在编辑道路 ${key}。`);
+        }
+
+        function deleteRoad(key) {
+            if (!confirm(`确定删除道路 ${key} 的几何数据吗？`)) {
+                return;
+            }
+
+            delete roadGeometry[key];
+
+            if (currentRoad?.key === key) {
+                currentRoad = null;
+                currentPoints = [];
+            }
+
+            persistData();
+            refreshAll();
+
+            showToast(`道路 ${key} 已删除。`);
+        }
+
+        function undoPoint() {
+            if (currentPoints.length === 0) {
+                return;
+            }
+
+            currentPoints.pop();
+            refreshAll();
+        }
+
+        function clearCurrentRoad() {
+            if (
+                currentPoints.length > 0 &&
+                !confirm("确定清空当前道路的全部采集点吗？")
+            ) {
+                return;
+            }
+
+            currentPoints = [];
+            refreshAll();
+        }
+
+        function cancelCurrentRoad() {
+            currentRoad = null;
+            currentPoints = [];
+            refreshAll();
+        }
+
+        function importGeometry(file) {
+            const reader = new FileReader();
+
+            reader.onload = event => {
+                try {
+                    const parsed = JSON.parse(event.target.result);
+                    const sanitized = sanitizeGeometry(parsed);
+
+                    const count = Object.keys(sanitized).length;
+
+                    if (count === 0) {
+                        throw new Error("没有发现有效道路数据");
+                    }
+
+                    if (
+                        Object.keys(roadGeometry).length > 0 &&
+                        !confirm(
+                            `将导入 ${count} 条道路。是否覆盖当前全部数据？`
+                        )
+                    ) {
+                        return;
+                    }
+
+                    roadGeometry = sanitized;
+                    cancelCurrentRoad();
+                    persistData();
+                    refreshAll();
+
+                    showToast(`成功导入 ${count} 条道路。`);
+                } catch (error) {
+                    console.error(error);
+                    showToast(`JSON 导入失败：${error.message}`);
+                } finally {
+                    jsonInput.value = "";
+                }
+            };
+
+            reader.onerror = () => {
+                showToast("JSON 文件读取失败。");
+                jsonInput.value = "";
+            };
+
+            reader.readAsText(file, "UTF-8");
+        }
+
+        async function copyJson() {
+            const text = getJsonText();
+
+            try {
+                await navigator.clipboard.writeText(text);
+                showToast("JSON 已复制到剪贴板。");
+            } catch {
+                jsonPreview.value = text;
+                jsonPreview.focus();
+                jsonPreview.select();
+
+                document.execCommand("copy");
+
+                showToast("JSON 已复制到剪贴板。");
+            }
+        }
+
+        function downloadJson() {
+            const blob = new Blob(
+                [getJsonText()],
+                { type: "application/json;charset=utf-8" }
+            );
+
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement("a");
+
+            link.href = url;
+            link.download = "road_geometry.json";
+
+            document.body.appendChild(link);
+            link.click();
+            link.remove();
+
+            URL.revokeObjectURL(url);
+
+            showToast("road_geometry.json 已下载。");
+        }
+
+        function clearAllRoads() {
+            if (
+                Object.keys(roadGeometry).length === 0 &&
+                currentPoints.length === 0
+            ) {
+                showToast("当前没有可以清除的数据。");
+                return;
+            }
+
+            if (
+                !confirm(
+                    "确定清空所有道路几何数据吗？此操作无法撤销。"
+                )
+            ) {
+                return;
+            }
+
+            roadGeometry = {};
+            currentRoad = null;
+            currentPoints = [];
+
+            localStorage.removeItem(STORAGE_KEY);
+
+            refreshAll();
+
+            showToast("全部道路数据已清空。");
+        }
+
+        imageInput.addEventListener("change", () => {
+            const file = imageInput.files?.[0];
+
+            if (!file) {
+                return;
+            }
+
+            const reader = new FileReader();
+
+            reader.onload = event => {
+                mapImage.onload = () => {
+                    imageLoaded = true;
+
+                    mapImage.width = mapImage.naturalWidth;
+                    mapImage.height = mapImage.naturalHeight;
+
+                    mapStage.style.width =
+                        `${mapImage.naturalWidth}px`;
+
+                    mapStage.style.height =
+                        `${mapImage.naturalHeight}px`;
+
+                    svgOverlay.setAttribute(
+                        "width",
+                        mapImage.naturalWidth
+                    );
+
+                    svgOverlay.setAttribute(
+                        "height",
+                        mapImage.naturalHeight
+                    );
+
+                    emptyState.classList.add("hidden");
+
+                    imageStatus.innerHTML = `
+                        图片：<strong>${file.name}</strong><br>
+                        原始尺寸：
+                        <strong>
+                            ${mapImage.naturalWidth} ×
+                            ${mapImage.naturalHeight}
+                        </strong>
+                    `;
+
+                    fitImageToViewport();
+                    renderOverlay();
+
+                    showToast("校园地图加载成功。");
+                };
+
+                mapImage.onerror = () => {
+                    imageLoaded = false;
+                    showToast("地图图片加载失败。");
+                };
+
+                mapImage.src = event.target.result;
+            };
+
+            reader.readAsDataURL(file);
+        });
+
+        jsonInput.addEventListener("change", () => {
+            const file = jsonInput.files?.[0];
+
+            if (file) {
+                importGeometry(file);
+            }
+        });
+
+        viewport.addEventListener("click", event => {
+            if (!imageLoaded || !currentRoad || isPanning) {
+                return;
+            }
+
+            if (spacePressed || event.button !== 0) {
+                return;
+            }
+
+            const point = screenToImage(
+                event.clientX,
+                event.clientY
+            );
+
+            if (!isPointInsideImage(point)) {
+                return;
+            }
+
+            currentPoints.push([point.x, point.y]);
+            refreshAll();
+        });
+
+        viewport.addEventListener("mousemove", event => {
+            if (!imageLoaded) {
+                return;
+            }
+
+            if (isPanning) {
+                translateX =
+                    panOriginX + event.clientX - panStartX;
+
+                translateY =
+                    panOriginY + event.clientY - panStartY;
+
+                applyTransform();
+                return;
+            }
+
+            const point = screenToImage(
+                event.clientX,
+                event.clientY
+            );
+
+            if (isPointInsideImage(point)) {
+                coordinateBadge.textContent =
+                    `x: ${point.x}, y: ${point.y}, ` +
+                    `缩放: ${Math.round(scale * 100)}%`;
+            } else {
+                coordinateBadge.textContent =
+                    `x: -, y: -, ` +
+                    `缩放: ${Math.round(scale * 100)}%`;
+            }
+        });
+
+        viewport.addEventListener(
+            "wheel",
+            event => {
+                if (!imageLoaded) {
+                    return;
+                }
+
+                event.preventDefault();
+
+                const factor =
+                    event.deltaY < 0 ? 1.12 : 1 / 1.12;
+
+                setScaleAtPoint(
+                    scale * factor,
+                    event.clientX,
+                    event.clientY
+                );
+            },
+            { passive: false }
+        );
+
+        viewport.addEventListener("mousedown", event => {
+            const shouldPan =
+                event.button === 1 ||
+                (event.button === 0 && spacePressed);
+
+            if (!shouldPan || !imageLoaded) {
+                return;
+            }
+
+            event.preventDefault();
+
+            isPanning = true;
+            panStartX = event.clientX;
+            panStartY = event.clientY;
+            panOriginX = translateX;
+            panOriginY = translateY;
+
+            viewport.classList.add("panning");
+        });
+
+        window.addEventListener("mouseup", () => {
+            isPanning = false;
+            viewport.classList.remove("panning");
+        });
+
+        window.addEventListener("keydown", event => {
+            if (event.code === "Space") {
+                spacePressed = true;
+
+                if (
+                    document.activeElement?.tagName !== "INPUT" &&
+                    document.activeElement?.tagName !== "TEXTAREA"
+                ) {
+                    event.preventDefault();
+                }
+            }
+
+            if (
+                event.key === "Escape" &&
+                currentRoad
+            ) {
+                if (
+                    currentPoints.length === 0 ||
+                    confirm("取消当前道路采集吗？")
+                ) {
+                    cancelCurrentRoad();
+                }
+            }
+
+            if (
+                (event.ctrlKey || event.metaKey) &&
+                event.key.toLowerCase() === "z" &&
+                currentRoad
+            ) {
+                event.preventDefault();
+                undoPoint();
+            }
+        });
+
+        window.addEventListener("keyup", event => {
+            if (event.code === "Space") {
+                spacePressed = false;
+            }
+        });
+
+        window.addEventListener("resize", () => {
+            if (imageLoaded) {
+                fitImageToViewport();
+            }
+        });
+
+        startRoadButton.addEventListener(
+            "click",
+            startRoad
+        );
+
+        finishRoadButton.addEventListener(
+            "click",
+            finishRoad
+        );
+
+        undoButton.addEventListener(
+            "click",
+            undoPoint
+        );
+
+        clearCurrentButton.addEventListener(
+            "click",
+            clearCurrentRoad
+        );
+
+        copyButton.addEventListener(
+            "click",
+            copyJson
+        );
+
+        downloadButton.addEventListener(
+            "click",
+            downloadJson
+        );
+
+        exportTextareaButton.addEventListener(
+            "click",
+            () => {
+                updateJsonPreview();
+                showToast("JSON 预览已刷新。");
+            }
+        );
+
+        clearAllButton.addEventListener(
+            "click",
+            clearAllRoads
+        );
+
+        zoomInButton.addEventListener(
+            "click",
+            () => {
+                const rect = viewport.getBoundingClientRect();
+
+                setScaleAtPoint(
+                    scale * 1.2,
+                    rect.left + rect.width / 2,
+                    rect.top + rect.height / 2
+                );
+            }
+        );
+
+        zoomOutButton.addEventListener(
+            "click",
+            () => {
+                const rect = viewport.getBoundingClientRect();
+
+                setScaleAtPoint(
+                    scale / 1.2,
+                    rect.left + rect.width / 2,
+                    rect.top + rect.height / 2
+                );
+            }
+        );
+
+        zoomResetButton.addEventListener(
+            "click",
+            fitImageToViewport
+        );
+
+        toggleSavedRoadsButton.addEventListener(
+            "click",
+            () => {
+                showSavedRoads = !showSavedRoads;
+
+                toggleSavedRoadsButton.textContent =
+                    showSavedRoads
+                        ? "隐藏旧路"
+                        : "显示旧路";
+
+                renderOverlay();
+            }
+        );
+
+        loadLocalData();
+        refreshAll();
+    </script>
+</body>
+</html>

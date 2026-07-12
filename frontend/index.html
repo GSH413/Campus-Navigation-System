@@ -1,0 +1,112 @@
+﻿<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>校园导览系统</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <main class="app-shell">
+    <aside class="sidebar left-panel">
+      <section class="brand-block">
+        <p class="eyebrow">Campus Navigation</p>
+        <h1>校园导览系统</h1>
+        <p class="subtle">基于真实地点与道路数据的最短路径可视化</p>
+      </section>
+
+      <section class="control-section">
+        <div class="section-heading">
+          <span>路线查询</span>
+          <span id="dataStatus" class="status-pill">加载中</span>
+        </div>
+        <label class="field-label" for="startSelect">起点</label>
+        <select id="startSelect"></select>
+        <label class="field-label" for="endSelect">终点</label>
+        <select id="endSelect"></select>
+        <div class="button-row">
+          <button id="routeButton" class="primary-button" type="button">查询路线</button>
+          <button id="resetButton" class="ghost-button" type="button">重置</button>
+        </div>
+      </section>
+
+      <section class="control-section">
+        <div class="section-heading">
+          <span>地点查询</span>
+        </div>
+        <input id="searchInput" type="search" placeholder="输入地点名称">
+        <div id="searchResults" class="search-results"></div>
+      </section>
+
+      <section class="control-section compact">
+        <div class="section-heading">
+          <span>地图控制</span>
+          <span id="zoomValue" class="muted-text">100%</span>
+        </div>
+        <div class="map-tools">
+          <button id="zoomOutButton" class="icon-button" title="缩小" type="button">−</button>
+          <input id="zoomSlider" type="range" min="40" max="260" value="100">
+          <button id="zoomInButton" class="icon-button" title="放大" type="button">+</button>
+          <button id="fitButton" class="icon-button wide" title="适应窗口" type="button">Fit</button>
+        </div>
+      </section>
+    </aside>
+
+    <section class="map-stage">
+      <div class="top-bar">
+        <div>
+          <strong id="mapTitle">校园地图</strong>
+          <span id="mapMeta" class="muted-text"></span>
+        </div>
+        <div class="legend">
+          <span><i class="dot normal"></i>地点</span>
+          <span><i class="dot start"></i>起点</span>
+          <span><i class="dot end"></i>终点</span>
+          <span><i class="line-sample"></i>路线</span>
+        </div>
+      </div>
+
+      <div id="mapViewport" class="map-viewport">
+        <div id="mapContent" class="map-content">
+          <img id="campusMap" alt="校园地图">
+          <svg id="routeOverlay" class="route-overlay" aria-hidden="true"></svg>
+          <div id="markerLayer" class="marker-layer"></div>
+        </div>
+        <div id="mapPlaceholder" class="map-placeholder hidden">
+          <h2>未找到校园地图图片</h2>
+          <p>请将 .png / .jpg / .jpeg / .webp 地图放入项目 assets 目录。</p>
+        </div>
+      </div>
+    </section>
+
+    <aside class="sidebar right-panel">
+      <section class="detail-card" id="spotDetail">
+        <p class="eyebrow">Spot Detail</p>
+        <h2>选择一个地点</h2>
+        <p class="subtle">点击地图标记或搜索结果，可查看地点介绍并设置起终点。</p>
+      </section>
+
+      <section class="route-card">
+        <div class="section-heading">
+          <span>路线结果</span>
+          <span id="routeState" class="status-pill neutral">待查询</span>
+        </div>
+        <div class="metric-grid">
+          <div>
+            <span class="metric-label">最短距离</span>
+            <strong id="distanceMetric">--</strong>
+          </div>
+          <div>
+            <span class="metric-label">经过地点</span>
+            <strong id="countMetric">--</strong>
+          </div>
+        </div>
+        <div id="routeSummary" class="route-summary muted-text">请选择起点和终点。</div>
+        <ol id="routeList" class="route-list"></ol>
+      </section>
+    </aside>
+  </main>
+
+  <script src="renderer.js"></script>
+</body>
+</html>

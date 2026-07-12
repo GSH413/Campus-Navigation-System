@@ -335,3 +335,162 @@ g++ src/main.cpp src/Spot.cpp src/Graph.cpp src/Dijkstra.cpp src/Menu.cpp src/Da
 4. 区分普通用户和管理员权限
 5. 支持道路动态维护和数据持久化
 6. 预留地图坐标字段，方便后续前端可视化开发
+
+---
+
+## 十四、图形化前端说明
+
+项目已新增独立的 Electron 图形化前端，目录为：
+
+```text
+frontend/
+├── package.json
+├── main.js
+├── preload.js
+├── data-adapter.js
+├── index.html
+├── styles.css
+├── renderer.js
+├── test-data.js
+└── README.md
+```
+
+前端只作为普通用户可视化界面使用，不提供管理员维护功能，不修改 `src/`、`include/` 或 `assets/*.txt` 中的后端和数据文件。管理员仍通过原 C++ 命令行程序维护地点与道路数据。
+
+### 1. 前端技术栈
+
+* Electron
+* HTML
+* CSS
+* JavaScript
+* SVG 路线覆盖层
+
+Electron 主窗口使用安全配置：
+
+```javascript
+contextIsolation: true
+nodeIntegration: false
+```
+
+渲染进程通过 `preload.js` 暴露的最小接口读取项目内必要资源，不直接获得完整 Node.js 权限。
+
+### 2. 前端读取的数据文件
+
+前端读取以下项目内资源：
+
+```text
+assets/spots.txt
+assets/roads.txt
+assets/road_geometry.json
+assets/校园地图.png
+```
+
+其中：
+
+* `spots.txt` 保存地点编号、名称、介绍和地图像素坐标。
+* `roads.txt` 保存无向道路及其权值，Dijkstra 最短路径仍只依据该文件中的距离计算。
+* `road_geometry.json` 保存每条道路在地图上的真实折线坐标，只用于路线高亮绘制，不参与最短路径选路。
+* `校园地图.png` 为前端展示使用的校园地图原图。
+
+### 3. 路线高亮方式
+
+前端查询路线时流程如下：
+
+```text
+读取 spots.txt 和 roads.txt
+构建道路图
+使用 Dijkstra 计算最短路径节点序列
+根据相邻节点从 road_geometry.json 获取真实道路折线
+使用 SVG polyline 在地图上高亮完整路线
+```
+
+`road_geometry.json` 的道路键采用无向格式：
+
+```text
+较小地点ID-较大地点ID
+```
+
+例如地点 `2` 和地点 `5` 之间的道路键为：
+
+```text
+2-5
+```
+
+如果查询方向与 JSON 保存方向相反，前端会复制折线点数组并反转后绘制，不会修改原始 JSON 数据。
+
+如果某条道路在 `roads.txt` 中存在但在 `road_geometry.json` 中缺失，前端会临时使用两个地点坐标之间的直线降级显示，并在界面和开发者控制台提示缺失的道路键。
+
+### 4. 前端安装与启动
+
+进入前端目录：
+
+```bash
+cd frontend
+```
+
+安装依赖：
+
+```bash
+npm install
+```
+
+启动开发版：
+
+```bash
+npm run dev
+```
+
+或：
+
+```bash
+npm start
+```
+
+可选 Windows 打包命令：
+
+```bash
+npm run build:win
+```
+
+### 5. 前端数据测试
+
+前端提供数据与路径测试脚本：
+
+```bash
+node test-data.js
+```
+
+该脚本会验证：
+
+* `spots.txt` 是否能读取。
+* `roads.txt` 是否能读取。
+* `road_geometry.json` 是否能读取。
+* Dijkstra 是否能计算示例路线。
+* 正向道路几何是否能绘制。
+* 反向道路几何是否能自动反转。
+* 多段路线几何是否能拼接。
+* 缺失几何时是否能降级处理。
+
+当前示例路线：
+
+```text
+大门 -> 春语园
+```
+
+在当前数据下结果为：
+
+```text
+大门 -> 春华堂 -> 食堂 -> 春草园 -> 春语园
+最短距离：920 米
+```
+
+### 6. 命令行后端仍可独立运行
+
+原 C++ 命令行版本仍使用原方式编译和运行：
+
+```bash
+g++ src/main.cpp src/Spot.cpp src/Graph.cpp src/Dijkstra.cpp src/Menu.cpp src/DataLoader.cpp -Iinclude -o campus
+./campus
+```
+
+前端和后端彼此独立：前端只读数据文件进行展示，后端仍负责命令行交互和管理员维护。
