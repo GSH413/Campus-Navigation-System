@@ -1,0 +1,14 @@
+<!DOCTYPE html><html lang="zh-CN"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>校园导览系统</title><link rel="stylesheet" href="entry.css"></head>
+<body><main class="entry-shell">
+  <section id="modeView" class="entry-card">
+    <header><p class="eyebrow">Campus Navigation</p><h1>校园导览系统</h1><p>请选择本次使用方式</p></header>
+    <div class="mode-grid">
+      <button class="mode-card" data-mode="user"><span class="icon"><svg viewBox="0 0 24 24"><path d="M3 6.5 9 3l6 3.5L21 3v14.5L15 21l-6-3.5L3 21Z"/><path d="M9 3v14.5M15 6.5V21"/></svg></span><span><strong>用户模式</strong><small>查询地点、规划路线并查看校园地图</small></span><i>→</i></button>
+      <button class="mode-card" data-mode="admin"><span class="icon"><svg viewBox="0 0 24 24"><path d="M12 3 4.5 6v5.2c0 4.6 3.2 8.8 7.5 9.8 4.3-1 7.5-5.2 7.5-9.8V6Z"/><path d="M9 12.2 11.2 14 15.5 9.5"/></svg></span><span><strong>管理员模式</strong><small>维护地点、道路和校园地图数据</small></span><i>→</i></button>
+    </div>
+  </section>
+  <section id="loginView" class="entry-card login-card hidden">
+    <button id="backButton" class="back" type="button">← 返回身份选择</button><span class="login-icon"><svg viewBox="0 0 24 24"><path d="M12 3 4.5 6v5.2c0 4.6 3.2 8.8 7.5 9.8 4.3-1 7.5-5.2 7.5-9.8V6Z"/><path d="M9 11h6v5H9zM10.5 11V9.5a1.5 1.5 0 0 1 3 0V11"/></svg></span><h1>管理员登录</h1><p>验证身份后进入校园地图数据管理中心</p>
+    <form id="loginForm"><label for="password">管理员密码</label><input id="password" type="password" autocomplete="current-password" placeholder="请输入管理员密码"><div id="loginError" class="error" role="alert"></div><button class="primary" type="submit">登录管理中心</button></form>
+  </section>
+</main><script src="entry.js"></script></body></html>

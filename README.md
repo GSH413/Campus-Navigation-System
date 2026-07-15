@@ -1,496 +1,348 @@
-Campus Navigation System
+# 校园导览系统（Campus Navigation System）
 
-一、项目简介
+一个基于 C++ 与 Electron 开发的校园地图导航系统，支持地点查询、最短路径规划、真实道路折线高亮和校园数据管理。
 
-本项目是一个基于 C++ 实现的校园导览系统，主要用于完成数据结构课程设计任务。
+## 项目简介
 
-系统将校园中的地点抽象为图的顶点，将地点之间的道路抽象为图的边，边的权值表示两地点之间的距离。用户可以通过系统查询校园地点信息、道路信息，并使用 Dijkstra 算法查询两个地点之间的最短路径。
+本项目将校园地点表示为图的顶点，将地点之间的道路表示为带权无向边，可通过命令行程序或 Electron 图形界面使用。
 
-项目目前已完成命令行版本的核心功能，并对代码进行了模块化拆分，支持从文件读取地点和道路数据，支持管理员对道路和地点信息进行维护。
+普通用户可以搜索地点、选择起点和终点，并在校园地图上查看最短路线。管理员可以维护地点与道路数据、临时关闭或恢复道路，并检查地图数据完整性。
 
-⸻
+项目主要使用 C++、Electron、HTML、CSS 和 JavaScript，图数据采用邻接矩阵组织，路径规划使用 Dijkstra 算法，道路形状由 JSON 折线数据提供。
 
-二、项目功能
+## 功能展示
 
-1. 普通用户功能
+- **身份选择**：启动后可进入用户模式或管理员模式。
+- **地点查询**：按名称搜索地点并查看地点介绍和地图坐标。
+- **路线规划**：选择起点和终点，计算并展示最短路径。
+- **地图导航**：显示地点标记，通过 SVG 高亮真实道路折线。
+- **地图交互**：支持缩放、拖动、复位和地点定位。
+- **地点管理**：管理员可查看和修改地点名称、介绍及坐标。
+- **道路管理**：管理员可新增道路、修改距离、临时关闭和恢复道路。
+- **数据概况**：展示地点、道路、几何数据和地图连通状态。
+- **完整性检查**：检查孤立地点、无效道路、缺失几何和异常坐标。
+- **命令行模式**：提供独立的 C++ 菜单式查询与管理程序。
 
-普通用户可以使用以下功能：
+## 技术栈
 
-1. 查看所有校园地点
-2. 查询指定地点信息
-3. 查询两个地点之间是否存在直接道路
-4. 查询两个地点之间的最短路径
+| 类别 | 技术 |
+| --- | --- |
+| 核心程序 | C++ 17 |
+| 桌面应用 | Electron 31 |
+| 前端 | HTML、CSS、JavaScript |
+| 地图绘制 | SVG、PNG |
+| 图结构 | 邻接矩阵、无向带权图 |
+| 路径规划 | Dijkstra |
+| 数据格式 | TXT、JSON |
+| 构建工具 | Make、npm、electron-builder |
 
-2. 管理员功能
-
-管理员登录后可以使用以下功能：
-
-1. 修改道路距离
-2. 关闭某条道路
-3. 恢复某条道路
-4. 修改地点信息
-5. 增加道路
-
-管理员对道路或地点信息的修改会保存到对应的数据文件中，程序重新运行后仍然有效。
-
-⸻
-
-三、技术与数据结构
-
-本项目主要使用以下技术和数据结构：
-
-* C++
-* 结构体 struct
-* vector
-* 邻接矩阵
-* 栈 stack
-* 文件读取与写入
-* Dijkstra 最短路径算法
-* 模块化程序设计
-
-⸻
-
-四、图结构设计
-
-系统使用图结构表示校园地图。
-
-1. 顶点设计
-
-每个校园地点使用 Spot 结构体表示：
-
-struct Spot {
-    int id;
-    string name;
-    string description;
-    int x;
-    int y;
-};
-
-其中：
-
-* id：地点编号
-* name：地点名称
-* description：地点介绍
-* x：地点在校园地图图片中的横坐标
-* y：地点在校园地图图片中的纵坐标
-
-2. 边设计
-
-道路使用邻接矩阵 graph[MAXN][MAXN] 表示。
-
-graph[i][j]
-
-表示地点 i 到地点 j 的距离。
-
-如果两个地点之间没有道路，则用 INF 表示不可达。
-
-⸻
-
-五、算法设计
-
-Dijkstra 最短路径算法
-
-系统使用 Dijkstra 算法计算两个地点之间的最短路径。
-
-算法中主要使用：
-
-* dist[]：记录起点到每个地点的当前最短距离
-* visited[]：记录地点是否已经被确定最短距离
-* pre[]：记录路径中的前驱节点，用于恢复完整路径
-
-路径恢复时，系统通过 pre[] 数组从终点反向查找起点，并使用栈将路径顺序输出。
-
-⸻
-
-六、项目结构
-
-Campus-Navigation-System/
-├── assets/
-│   ├── spots.txt
-│   └── roads.txt
-│
-├── include/
-│   ├── Spot.h
-│   ├── Graph.h
-│   ├── Dijkstra.h
-│   ├── Menu.h
-│   └── DataLoader.h
-│
-├── src/
-│   ├── main.cpp
-│   ├── Spot.cpp
-│   ├── Graph.cpp
-│   ├── Dijkstra.cpp
-│   ├── Menu.cpp
-│   └── DataLoader.cpp
-│
-├── tools/
-│   └── coordinate_picker.html
-│
-├── README.md
-└── .gitignore
-
-⸻
-
-七、模块说明
-
-1. Spot 模块
-
-相关文件：
-
-include/Spot.h
-src/Spot.cpp
-
-主要功能：
-
-* 定义校园地点结构体
-* 显示所有地点
-* 根据地点名称查找地点编号
-
-⸻
-
-2. Graph 模块
-
-相关文件：
-
-include/Graph.h
-src/Graph.cpp
-
-主要功能：
-
-* 初始化邻接矩阵
-* 添加道路
-* 查询道路
-* 修改道路距离
-* 关闭道路
-* 恢复道路
-
-⸻
-
-3. Dijkstra 模块
-
-相关文件：
-
-include/Dijkstra.h
-src/Dijkstra.cpp
-
-主要功能：
-
-* 计算最短路径
-* 输出最短路径
-* 通过前驱数组恢复路线
-
-⸻
-
-4. Menu 模块
-
-相关文件：
-
-include/Menu.h
-src/Menu.cpp
-
-主要功能：
-
-* 主菜单
-* 普通用户菜单
-* 管理员菜单
-* 管理员登录
-* 用户输入与功能调用
-
-⸻
-
-5. DataLoader 模块
-
-相关文件：
-
-include/DataLoader.h
-src/DataLoader.cpp
-
-主要功能：
-
-* 从 spots.txt 读取地点信息
-* 从 roads.txt 读取道路信息
-* 保存修改后的地点信息
-* 保存修改后的道路信息
-
-⸻
-
-八、数据文件格式
-
-1. 地点数据文件
-
-文件路径：
-
-assets/spots.txt
-
-格式：
-
-id|地点名称|地点介绍|x坐标|y坐标
-
-示例：
-
-0|大门|学校入口|123|678
-1|图书馆|自习的地方|456|321
-16|医工楼|生物医学工程学院所在地|850|420
-
-说明：
-
-地点数据使用 | 作为分隔符，避免地点介绍中出现空格时读取错误。
-
-⸻
-
-2. 道路数据文件
-
-文件路径：
-
-assets/roads.txt
-
-格式：
-
-起点ID 终点ID 距离
-
-示例：
-
-0 15 600
-0 5 360
-5 2 220
-
-说明：
-
-道路数据由三个数字组成，分别表示起点编号、终点编号和道路距离。
-
-⸻
-
-九、地图坐标说明
-
-系统中的 x 和 y 坐标用于后续前端地图可视化。
-
-坐标采用图片像素坐标：
-
-左上角为 (0, 0)
-向右 x 增大
-向下 y 增大
-
-后续前端可以根据地点坐标在校园地图图片上显示地点标记，并根据最短路径结果实现路线高亮。
-
-项目中可以使用 tools/coordinate_picker.html 工具从校园地图图片中拾取地点像素坐标。
-
-⸻
-
-十、编译与运行
-
-1. 编译
-
-当前可以使用以下命令编译：
-
-g++ src/main.cpp src/Spot.cpp src/Graph.cpp src/Dijkstra.cpp src/Menu.cpp src/DataLoader.cpp -Iinclude -o campus
-
-2. 运行
-
-./campus
-
-⸻
-
-十一、当前已完成功能
-
-* 校园地点建模
-* 校园道路建模
-* 邻接矩阵存储图结构
-* 地点信息查询
-* 道路信息查询
-* Dijkstra 最短路径查询
-* 最短路径输出
-* 普通用户菜单
-* 管理员菜单
-* 管理员道路维护
-* 管理员地点信息维护
-* 地点数据文件读取
-* 道路数据文件读取
-* 地点数据保存
-* 道路数据保存
-* 项目模块化拆分
-
-⸻
-
-十二、后续开发计划
-
-后续计划包括：
-
-1. 添加 Makefile，简化编译命令
-2. 根据校园地图图片完善地点真实坐标
-3. 制作前端地图界面
-4. 在地图上显示地点标记
-5. 根据最短路径结果高亮路线
-6. 整理课程设计报告和答辩 PPT
-
-⸻
-
-十三、项目特点
-
-本项目的主要特点包括：
-
-1. 使用图结构建模校园道路网络
-2. 使用 Dijkstra 算法实现最短路径查询
-3. 使用文件保存地点和道路数据，提高可维护性
-4. 区分普通用户和管理员权限
-5. 支持道路动态维护和数据持久化
-6. 预留地图坐标字段，方便后续前端可视化开发
-
----
-
-## 十四、图形化前端说明
-
-项目已新增独立的 Electron 图形化前端，目录为：
+## 项目结构
 
 ```text
-frontend/
-├── package.json
-├── main.js
-├── preload.js
-├── data-adapter.js
-├── index.html
-├── styles.css
-├── renderer.js
-├── test-data.js
+Campus-Navigation-System/
+├── assets/                     # 校园地图、地点、道路和道路几何数据
+│   ├── spots.txt
+│   ├── roads.txt
+│   ├── road_geometry.json
+│   └── 校园地图.png
+├── frontend/                   # Electron 图形界面
+│   ├── data/                   # 管理端道路关闭状态
+│   ├── entry.html              # 用户/管理员身份选择页
+│   ├── index.html              # 用户地图页
+│   ├── admin.html              # 管理员管理中心
+│   ├── main.js                 # Electron 主进程
+│   ├── preload.js              # 安全 API 桥接
+│   ├── renderer.js             # 用户端交互
+│   ├── admin.js                # 管理端交互
+│   └── package.json            # 前端依赖与运行脚本
+├── include/                    # C++ 头文件
+├── src/                        # C++ 源文件
+├── tools/                      # 坐标与道路几何采集工具
+│   ├── coordinate_picker.html
+│   └── road-geometry-picker.html
+├── Makefile                    # C++ 构建配置
 └── README.md
 ```
 
-前端只作为普通用户可视化界面使用，不提供管理员维护功能，不修改 `src/`、`include/` 或 `assets/*.txt` 中的后端和数据文件。管理员仍通过原 C++ 命令行程序维护地点与道路数据。
+## 环境要求
 
-### 1. 前端技术栈
+### 必需软件
 
-* Electron
-* HTML
-* CSS
-* JavaScript
-* SVG 路线覆盖层
+| 软件 | 用途 | 建议版本 |
+| --- | --- | --- |
+| Git | 下载项目 | 最新稳定版 |
+| Node.js | 运行 Electron 和安装依赖 | 18 或更高版本 |
+| npm | 安装前端依赖 | 随 Node.js 安装 |
+| g++ | 编译 C++ 程序 | 支持 C++ 17 |
+| Make | 使用项目 Makefile | 可选，可用 g++ 命令代替 |
 
-Electron 主窗口使用安全配置：
+Electron 不需要单独全局安装，执行 `npm install` 后会安装项目指定版本。
 
-```javascript
-contextIsolation: true
-nodeIntegration: false
+### Windows
+
+建议安装：
+
+- [Git for Windows](https://git-scm.com/download/win)
+- [Node.js LTS](https://nodejs.org/)
+- MSYS2/MinGW-w64，或其他支持 C++ 17 的 g++ 环境
+
+安装后在 PowerShell 或终端检查：
+
+```powershell
+git --version
+node --version
+npm --version
+g++ --version
 ```
 
-渲染进程通过 `preload.js` 暴露的最小接口读取项目内必要资源，不直接获得完整 Node.js 权限。
+### macOS
 
-### 2. 前端读取的数据文件
+安装 Node.js LTS，并通过 Xcode Command Line Tools 获取编译工具：
 
-前端读取以下项目内资源：
-
-```text
-assets/spots.txt
-assets/roads.txt
-assets/road_geometry.json
-assets/校园地图.png
+```bash
+xcode-select --install
 ```
 
-其中：
+检查环境：
 
-* `spots.txt` 保存地点编号、名称、介绍和地图像素坐标。
-* `roads.txt` 保存无向道路及其权值，Dijkstra 最短路径仍只依据该文件中的距离计算。
-* `road_geometry.json` 保存每条道路在地图上的真实折线坐标，只用于路线高亮绘制，不参与最短路径选路。
-* `校园地图.png` 为前端展示使用的校园地图原图。
-
-### 3. 路线高亮方式
-
-前端查询路线时流程如下：
-
-```text
-读取 spots.txt 和 roads.txt
-构建道路图
-使用 Dijkstra 计算最短路径节点序列
-根据相邻节点从 road_geometry.json 获取真实道路折线
-使用 SVG polyline 在地图上高亮完整路线
+```bash
+git --version
+node --version
+npm --version
+g++ --version
+make --version
 ```
 
-`road_geometry.json` 的道路键采用无向格式：
+### Linux
 
-```text
-较小地点ID-较大地点ID
+以 Ubuntu/Debian 为例：
+
+```bash
+sudo apt update
+sudo apt install git build-essential
 ```
 
-例如地点 `2` 和地点 `5` 之间的道路键为：
+Node.js 建议从 Node.js 官方渠道安装 LTS 版本。
 
-```text
-2-5
+## 快速开始
+
+### 1. 克隆项目
+
+```bash
+git clone https://github.com/GSH413/Campus-Navigation-System.git
+cd Campus-Navigation-System
 ```
 
-如果查询方向与 JSON 保存方向相反，前端会复制折线点数组并反转后绘制，不会修改原始 JSON 数据。
-
-如果某条道路在 `roads.txt` 中存在但在 `road_geometry.json` 中缺失，前端会临时使用两个地点坐标之间的直线降级显示，并在界面和开发者控制台提示缺失的道路键。
-
-### 4. 前端安装与启动
-
-进入前端目录：
+### 2. 安装 Electron 前端依赖
 
 ```bash
 cd frontend
-```
-
-安装依赖：
-
-```bash
 npm install
 ```
 
-启动开发版：
+首次安装需要下载 Electron，完成后无需重复安装。
+
+### 3. 编译 C++ 程序
+
+返回项目根目录：
 
 ```bash
+cd ..
+make
+```
+
+如果系统没有 `make`，可直接执行：
+
+```bash
+g++ -std=c++17 src/main.cpp src/Spot.cpp src/Graph.cpp src/Dijkstra.cpp src/Menu.cpp src/DataLoader.cpp -Iinclude -o campus
+```
+
+Windows 下可以将输出文件改为 `campus.exe`：
+
+```powershell
+g++ -std=c++17 src/main.cpp src/Spot.cpp src/Graph.cpp src/Dijkstra.cpp src/Menu.cpp src/DataLoader.cpp -Iinclude -o campus.exe
+```
+
+### 4. 启动 Electron 图形界面
+
+```bash
+cd frontend
 npm run dev
 ```
 
-或：
+应用启动后会首先显示身份选择页。选择“用户模式”即可打开校园地图。
+
+### 5. 运行 C++ 命令行程序（可选）
+
+必须从项目根目录运行，程序才能正确读取 `assets/`：
+
+macOS / Linux：
 
 ```bash
-npm start
-```
-
-可选 Windows 打包命令：
-
-```bash
-npm run build:win
-```
-
-### 5. 前端数据测试
-
-前端提供数据与路径测试脚本：
-
-```bash
-node test-data.js
-```
-
-该脚本会验证：
-
-* `spots.txt` 是否能读取。
-* `roads.txt` 是否能读取。
-* `road_geometry.json` 是否能读取。
-* Dijkstra 是否能计算示例路线。
-* 正向道路几何是否能绘制。
-* 反向道路几何是否能自动反转。
-* 多段路线几何是否能拼接。
-* 缺失几何时是否能降级处理。
-
-当前示例路线：
-
-```text
-大门 -> 春语园
-```
-
-在当前数据下结果为：
-
-```text
-大门 -> 春华堂 -> 食堂 -> 春草园 -> 春语园
-最短距离：920 米
-```
-
-### 6. 命令行后端仍可独立运行
-
-原 C++ 命令行版本仍使用原方式编译和运行：
-
-```bash
-g++ src/main.cpp src/Spot.cpp src/Graph.cpp src/Dijkstra.cpp src/Menu.cpp src/DataLoader.cpp -Iinclude -o campus
 ./campus
 ```
 
-前端和后端彼此独立：前端只读数据文件进行展示，后端仍负责命令行交互和管理员维护。
+Windows：
+
+```powershell
+./campus.exe
+```
+
+### 启动检查清单
+
+- [ ] 身份选择页正常显示
+- [ ] 用户模式能够加载校园地图
+- [ ] 地点标记和搜索结果正常显示
+- [ ] 选择起点、终点后能够生成路线
+- [ ] 管理员模式能够打开登录页
+
+## 使用说明
+
+### 普通用户
+
+1. 启动应用并选择 **用户模式**。
+2. 在“地点查询”中输入地点名称，点击结果可定位到地图标记。
+3. 在“路线查询”中选择起点和终点。
+4. 点击 **查询路线**，右侧会显示最短距离和途经地点。
+5. 地图上的高亮折线表示规划结果；可使用滚轮、滑块或地图控制按钮调整视图。
+6. 点击 **刷新数据** 可重新读取地点、道路和几何文件。
+7. 点击 **返回身份选择** 可切换模式，点击 **退出** 可关闭窗口。
+
+### 管理员
+
+1. 在身份选择页选择 **管理员模式**。
+2. 输入管理员密码 `admin123` 并登录。
+3. 在左侧导航进入“数据概况”“地点管理”“道路管理”或“数据检查”。
+4. 编辑地点或道路后，在表单中点击保存。
+5. 临时关闭道路前需要确认；已关闭道路可在道路管理页恢复。
+6. 修改完成后可进入用户模式预览最新地图数据。
+
+> 管理员功能会写入项目数据文件。修改前建议通过 Git 提交或备份当前数据。
+
+## 数据文件说明
+
+| 文件 | 作用 | 基本格式 |
+| --- | --- | --- |
+| `assets/spots.txt` | 保存地点 ID、名称、介绍和地图坐标 | `id\|名称\|介绍\|x\|y` |
+| `assets/roads.txt` | 保存两个地点之间的道路距离 | `起点ID 终点ID 距离` |
+| `assets/road_geometry.json` | 保存道路在地图上的真实折线坐标 | 无向道路键对应坐标点数组 |
+| `frontend/data/closed_roads.json` | 保存管理员临时关闭的道路及原距离 | JSON 对象 |
+
+用户界面和管理员界面共用以上数据，不需要维护第二套地点或道路文件。
+
+## 管理员功能
+
+管理员可以：
+
+- 查看地图数据概况和加载状态。
+- 搜索并修改地点名称、介绍和坐标。
+- 查看、新增道路以及修改道路距离。
+- 临时关闭道路并保留原距离，之后恢复道路。
+- 查看每条道路是否配置几何折线。
+- 检查地图连通性、孤立地点、无效道路和异常坐标。
+- 打开现有道路几何采集工具。
+
+## 开发说明
+
+### 增加或修改地点
+
+优先使用管理员界面的“地点管理”，也可以按既有格式编辑：
+
+```text
+assets/spots.txt
+```
+
+地点坐标以 `assets/校园地图.png` 的原始像素尺寸为基准。
+
+### 增加或修改道路
+
+优先使用管理员界面的“道路管理”，数据保存在：
+
+```text
+assets/roads.txt
+```
+
+新增道路后如果没有对应几何，用户界面会使用地点之间的直线作为降级显示。
+
+### 更换校园地图
+
+替换以下图片，并重新确认所有地点坐标：
+
+```text
+assets/校园地图.png
+```
+
+### 更新道路几何
+
+使用现有采集工具：
+
+```text
+tools/road-geometry-picker.html
+```
+
+导出后检查并更新：
+
+```text
+assets/road_geometry.json
+```
+
+### 运行测试
+
+```bash
+cd frontend
+npm test
+```
+
+测试包含数据加载、路径规划、管理员数据校验和可回滚写入检查。
+
+### 构建 Windows 安装包
+
+```bash
+cd frontend
+npm run build:win
+```
+
+构建结果输出到 `frontend/dist/`。
+
+## 项目截图
+
+> （此处放置身份选择页截图）
+
+> （此处放置校园地图与路线导航截图）
+
+> （此处放置管理员管理中心截图）
+
+## 常见问题
+
+### Electron 启动失败
+
+确认已进入 `frontend/` 并安装依赖：
+
+```bash
+cd frontend
+npm install
+npm run dev
+```
+
+### 地图或地点没有显示
+
+确认以下文件存在且格式正确：
+
+```text
+assets/校园地图.png
+assets/spots.txt
+assets/roads.txt
+assets/road_geometry.json
+```
+
+### C++ 程序无法读取数据
+
+请从项目根目录运行 `campus` 或 `campus.exe`，不要在 `src/` 目录内启动。
+
+### 路线出现直线段
+
+对应道路缺少有效的 `road_geometry.json` 折线数据。可使用 `tools/road-geometry-picker.html` 补充。
+
+## License
+
+MIT

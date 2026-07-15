@@ -42,6 +42,10 @@ const els = {
   routeList: document.getElementById('routeList')
 };
 
+document.getElementById('backToEntryButton').addEventListener('click', () => window.campusAPI.navigate('entry'));
+document.getElementById('refreshDataButton').addEventListener('click', () => window.location.reload());
+document.getElementById('exitButton').addEventListener('click', () => window.close());
+
 function spotById(id) {
   return state.spots.find((spot) => spot.id === Number(id));
 }
@@ -483,4 +487,3 @@ init().catch((error) => {
   els.dataStatus.textContent = '加载失败';
   els.routeSummary.textContent = error.message;
 });
-

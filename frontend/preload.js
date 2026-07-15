@@ -1,29 +1,20 @@
-﻿const { contextBridge } = require('electron');
-const path = require('path');
-const { pathToFileURL } = require('url');
-const { loadCampusData, findCampusMap } = require('./data-adapter');
-
-const projectRoot = path.resolve(__dirname, '..');
-const assetsRoot = path.join(projectRoot, 'assets');
-
-function assertInsideAssets(filePath) {
-  const resolved = path.resolve(filePath);
-  const relative = path.relative(assetsRoot, resolved);
-  if (relative.startsWith('..') || path.isAbsolute(relative)) {
-    throw new Error('Blocked access outside project assets.');
-  }
-  return resolved;
-}
-
+﻿const { contextBridge, ipcRenderer } = require('electron');
 contextBridge.exposeInMainWorld('campusAPI', {
-  loadCampusData: async () => loadCampusData(projectRoot),
-  getMapAsset: async () => {
-    const map = findCampusMap(projectRoot);
-    if (!map) return null;
-    const safePath = assertInsideAssets(map.path);
-    return {
-      name: map.name,
-      url: pathToFileURL(safePath).toString()
-    };
-  }
+  loadCampusData: () => ipcRenderer.invoke('campus:load'),
+  getMapAsset: () => ipcRenderer.invoke('campus:map-asset'),
+  navigate: (target) => ipcRenderer.invoke('navigation:go', target),
+  reloadData: () => ipcRenderer.invoke('campus:load')
+});
+
+contextBridge.exposeInMainWorld('adminAPI', {
+  authenticate: (password) => ipcRenderer.invoke('admin:authenticate', password),
+  logout: () => ipcRenderer.invoke('admin:logout'),
+  hasSession: () => ipcRenderer.invoke('admin:session'),
+  loadAdminData: () => ipcRenderer.invoke('admin:load'),
+  updateSpot: (payload) => ipcRenderer.invoke('admin:update-spot', payload),
+  addRoad: (payload) => ipcRenderer.invoke('admin:add-road', payload),
+  updateRoad: (payload) => ipcRenderer.invoke('admin:update-road', payload),
+  closeRoad: (payload) => ipcRenderer.invoke('admin:close-road', payload),
+  restoreRoad: (payload) => ipcRenderer.invoke('admin:restore-road', payload),
+  openGeometryTool: () => ipcRenderer.invoke('admin:open-geometry')
 });
