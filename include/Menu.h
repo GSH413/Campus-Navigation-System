@@ -26,4 +26,10 @@ bool adminLogin();
 // 查询地点信息
 void querySpot(const vector<Spot>& spots);
 
+void locationManagementMenu(vector<Spot>& spots);
+
+void roadManagementMenu(vector<Spot>& spots);
+
+void checkMapConnectivity(const vector<Spot>& spots);
+
 #endif

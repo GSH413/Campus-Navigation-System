@@ -34,4 +34,13 @@ void updateRoad(int a, int b, int distance);
 void closeRoad(int a, int b);
 
 void restoreRoad(int a, int b, int distance);
+
+// 显示当前所有道路
+void showAllRoads(const vector<Spot>& spots);
+
+// 使用 BFS 检查地图是否连通
+bool isGraphConnected(int spotCount);
+
+// 显示地图数据概况
+void showDataSummary(const vector<Spot>& spots);
 #endif
